@@ -1,0 +1,63 @@
+server:
+  port: 9191
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+      - id: ADMIN-SERVICE
+        uri: http://localhost:9004/
+        predicates:
+        - Path=/admin/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: ADMIN-SERVICE
+            fallbackuri: forward:/adminServiceFallBack
+      - id: CANDIDATE-SERVICE
+        uri: http://localhost:9001/
+        predicates:
+        - Path=/candidate/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: CANDIDATE-SERVICE
+            fallbackuri: forward:/candidateServiceFallBack
+      - id: VOTE-SERVICE
+        uri: http://localhost:9002/
+        predicates:
+        - Path=/vote/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: VOTE-SERVICE
+            fallbackuri: forward:/voteServiceFallBack
+
+      - id: VOTER-SERVICE
+        uri: http://localhost:9003/
+        predicates:
+        - Path=/voter/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: VOTER-SERVICE
+            fallbackuri: forward:/voterServiceFallBack
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 4000
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
